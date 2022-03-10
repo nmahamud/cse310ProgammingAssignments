@@ -15,11 +15,13 @@ class FlowInterpretor:
         self.flags = ipPack.data.flags
         self.timestamp = ts
         self.printed = 0
+        self.recievedCount = 0
         self.synAckCheck = False
         self.throughput = 0
         self.firstts = 0
         self.lastts = 0
         self.seqackwinList = []
+        self.recievedList = []
     
     def checkUniquePorts(self, port1, port2):
         check1Switch = False
@@ -84,10 +86,16 @@ def main():
                     elif ((tcp.flags & 0x10) == 0x10 and eachFlow.synAckCheck):
                         eachFlow.firstts = ts
                         eachFlow.synAckCheck = False
-                    elif (eachFlow.printed < 2 and not eachFlow.synAckCheck):
+                    elif (eachFlow.printed < 2 and not eachFlow.synAckCheck and eachFlow.srcPort == tcp.sport and eachFlow.dstPort == tcp.dport):
                         eachFlow.lastts = ts
                         strAdd = "Source Port: " + str(tcp.sport) + " Destination Port: " + str(tcp.dport) + " Sequence Number: " + str(tcp.seq) + " Ack Number: " + str(tcp.ack) + " Recieve Window Size: " + str(tcp.win)
                         eachFlow.seqackwinList.append(strAdd)
+                        eachFlow.printed+=1
+                        eachFlow.throughput+=tcp.__len__()
+                    elif (eachFlow.recievedCount < 2 and not eachFlow.synAckCheck and eachFlow.srcPort == tcp.dport and eachFlow.dstPort == tcp.sport):
+                        eachFlow.lastts = ts
+                        strAdd = "Source Port: " + str(tcp.sport) + " Destination Port: " + str(tcp.dport) + " Sequence Number: " + str(tcp.seq) + " Ack Number: " + str(tcp.ack) + " Recieve Window Size: " + str(tcp.win)
+                        eachFlow.recievedList.append(strAdd)
                         eachFlow.printed+=1
                         eachFlow.throughput+=tcp.__len__()
                     else:
@@ -100,9 +108,12 @@ def main():
                 print("Source Port:", tcp.sport, "Source IP:", socket.inet_ntop(socket.AF_INET,ip.src), "-> Destination Port:", tcp.dport, " Destination IP:", socket.inet_ntop(socket.AF_INET, ip.dst))
                 flows.append(newFlow)
     for eachFlow in flows:
-        for eachstr in eachFlow.seqackwinList:
-            print(eachstr)
-        print("Source Port:", eachFlow.srcPort, "Destination Port:", eachFlow.dstPort, "Throughput:", eachFlow.throughput / (eachFlow.lastts - eachFlow.firstts))
+        i = 0
+        while i < 2:
+            print("Sender:", eachFlow.seqackwinList[i])
+            print("Receiver:", eachFlow.recievedList[i])
+            i+=1
+        print("Source Port:", eachFlow.srcPort, "Destination Port:", eachFlow.dstPort, "Throughput:", eachFlow.throughput / (eachFlow.lastts - eachFlow.firstts), "Bytes per Second")
     f.close()
 
 
