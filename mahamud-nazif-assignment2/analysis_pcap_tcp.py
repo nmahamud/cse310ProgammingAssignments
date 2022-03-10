@@ -96,7 +96,7 @@ def main():
                         eachFlow.lastts = ts
                         strAdd = "Source Port: " + str(tcp.sport) + " Destination Port: " + str(tcp.dport) + " Sequence Number: " + str(tcp.seq) + " Ack Number: " + str(tcp.ack) + " Recieve Window Size: " + str(tcp.win)
                         eachFlow.recievedList.append(strAdd)
-                        eachFlow.printed+=1
+                        eachFlow.recievedCount+=1
                         eachFlow.throughput+=tcp.__len__()
                     else:
                         eachFlow.lastts = ts
