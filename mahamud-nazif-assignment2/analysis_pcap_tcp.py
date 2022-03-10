@@ -16,6 +16,10 @@ class FlowInterpretor:
         self.timestamp = ts
         self.printed = 0
         self.synAckCheck = False
+        self.throughput = 0
+        self.firstts = 0
+        self.lastts = 0
+        self.seqackwinList = []
     
     def checkUniquePorts(self, port1, port2):
         check1Switch = False
@@ -76,27 +80,29 @@ def main():
                 if (newFlow.__eq__(eachFlow)):
                     newFlowCheck = False
                     if ((tcp.flags & 0x12) == 0x12):
-                        #newFlowCheck = False
                         eachFlow.synAckCheck = True
                     elif ((tcp.flags & 0x10) == 0x10 and eachFlow.synAckCheck):
-                        #newFlowCheck = False
+                        eachFlow.firstts = ts
                         eachFlow.synAckCheck = False
-                    
                     elif (eachFlow.printed < 2 and not eachFlow.synAckCheck):
-                        #newFlowCheck = False
-                        print("Source Port:", tcp.sport, "Destination Port:", tcp.dport,"Sequence Number:", tcp.seq, "Ack Number:", tcp.ack, "Recieve Window Size:", tcp.win)
+                        eachFlow.lastts = ts
+                        strAdd = "Source Port: " + str(tcp.sport) + " Destination Port: " + str(tcp.dport) + " Sequence Number: " + str(tcp.seq) + " Ack Number: " + str(tcp.ack) + " Recieve Window Size: " + str(tcp.win)
+                        eachFlow.seqackwinList.append(strAdd)
                         eachFlow.printed+=1
+                        eachFlow.throughput+=tcp.__len__()
+                    else:
+                        eachFlow.lastts = ts
+                        eachFlow.throughput+=tcp.__len__()
                     break
                 else:
                     newFlowCheck = True
             if newFlowCheck:
                 print("Source Port:", tcp.sport, "Source IP:", socket.inet_ntop(socket.AF_INET,ip.src), "-> Destination Port:", tcp.dport, " Destination IP:", socket.inet_ntop(socket.AF_INET, ip.dst))
                 flows.append(newFlow)
-
-        # if tcp.dport == 80 and len(tcp.data) > 0:
-        #     http = dpkt.http.Request(tcp.data)
-        #     print(http.uri)
-
+    for eachFlow in flows:
+        for eachstr in eachFlow.seqackwinList:
+            print(eachstr)
+        print("Source Port:", eachFlow.srcPort, "Destination Port:", eachFlow.dstPort, "Throughput:", eachFlow.throughput / (eachFlow.lastts - eachFlow.firstts))
     f.close()
 
 
