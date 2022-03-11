@@ -27,7 +27,7 @@ class FlowInterpretor: #class object used for organizing everything
         self.packetTime = 0 #get the packtime
         self.packetCount = 0 #get the amount of packets sent within RTT
         self.congestionWindow = [] #the window of Congestions\
-        self.prevTS = 0
+        self.prevTS = 0 #used to save the previous Timestamp
     
     def checkUniquePorts(self, port1, port2): #used to check if the ports are the same regardless of order
         check1Switch = False #switch
@@ -80,7 +80,7 @@ def main():
                     elif ((tcp.flags & 0x10) == 0x10 and eachFlow.synAckCheck): #check if ACK and SYN?ACK flag is raised
                         eachFlow.firsttsFlag = True #this is now the first ts flag set 
                         eachFlow.synAckCheck = False #turn off synAckCheck
-                        eachFlow.prevTS = ts
+                        eachFlow.prevTS = ts #set the previous TS to this
                     elif (eachFlow.printed < 2 and not eachFlow.synAckCheck and eachFlow.srcPort == tcp.sport and eachFlow.dstPort == tcp.dport):
                         if eachFlow.firsttsFlag: 
                             eachFlow.firstts = ts #set first ts to firstts
@@ -88,14 +88,14 @@ def main():
                         strAdd = "Source Port: " + str(tcp.sport) + " Destination Port: " + str(tcp.dport) + " Sequence Number: " + str(tcp.seq) + " Ack Number: " + str(tcp.ack) + " Recieve Window Size: " + str(tcp.win)
                         eachFlow.seqackwinList.append(strAdd) #add String for printing to sender list
                         eachFlow.printed+=1 #add counter
-                        if eachFlow.packetTime < eachFlow.RTT and len(eachFlow.congestionWindow) < 3:
-                            eachFlow.packetTime+=(ts-eachFlow.prevTS)
-                            eachFlow.packetCount+=1
-                            eachFlow.prevTS = ts
-                        elif len(eachFlow.congestionWindow) < 3:
-                            eachFlow.congestionWindow.append(eachFlow.packetCount)
-                            eachFlow.packetTime = 0
-                            eachFlow.packetCount = 0
+                        if eachFlow.packetTime < eachFlow.RTT and len(eachFlow.congestionWindow) < 3: #if the packetTime is less than RTT and we have not found at most 3 window sizes
+                            eachFlow.packetTime+=(ts-eachFlow.prevTS) #set the new time
+                            eachFlow.packetCount+=1 #another packet
+                            eachFlow.prevTS = ts #set the new prev
+                        elif len(eachFlow.congestionWindow) < 3: #only do if less than 3 sizes found
+                            eachFlow.congestionWindow.append(eachFlow.packetCount) #add the size
+                            eachFlow.packetTime = 0 #reset
+                            eachFlow.packetCount = 0 #reset
                         if (tcp.flags & 0x1) != 0x1: #if not last, add lastts ad throughput
                             eachFlow.lastts = ts
                             eachFlow.throughput+=tcp.__len__()
@@ -142,9 +142,9 @@ def main():
             print("Receiver:", eachFlow.recievedList[i]) #get the receiver flow
             i+=1
         print("Source Port:", eachFlow.srcPort, "Destination Port:", eachFlow.dstPort, "Total bytes:", eachFlow.throughput, "Bytes Throughput:", eachFlow.throughput / (eachFlow.lastts - eachFlow.firstts), "Bytes per Second") #output for memory
-        print("Congestion Window Size estimates:", end=" ")#, eachFlow.congestionWindow[0], eachFlow.congestionWindow[1], eachFlow.congestionWindow[2], "\n")
+        print("Congestion Window Size estimates:", end=" ")#print the congestion window
         for eachWin in eachFlow.congestionWindow:
-            print(eachWin, end=" ")
+            print(eachWin, end=" ") #prints each size in the same line
         print("\n")
     f.close() #close the file
 
