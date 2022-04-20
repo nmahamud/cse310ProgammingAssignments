@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # This very long section is just for printing
     print("ARP Request:")
     print("\tHardware Type: {}".format(req[14:16].hex()))
-    print("\tProtocol Type: IPv4 {}".format(req[16:18].hex()))
+    print("\tProtocol Type: {}".format(req[16:18].hex()))
     print("\tHardware Size: {}".format(req[18:19].hex()))
     print("\tProtocol Size: {}".format(req[19:20].hex()))
     print("\tOpcode: request {}".format(req[20:22].hex()))
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     print("\tTarget IP address: {}.{}.{}.{}".format(int(ip1,16),int(ip2,16),int(ip3,16),int(ip4,16)))
     print("ARP Reply:")
     print("\tHardware Type: {}".format(reply[14:16].hex()))
-    print("\tProtocol Type: IPv4 {}".format(reply[16:18].hex()))
+    print("\tProtocol Type: {}".format(reply[16:18].hex()))
     print("\tHardware Size: {}".format(reply[18:19].hex()))
     print("\tProtocol Size: {}".format(reply[19:20].hex()))
     print("\tOpcode: reply {}".format(reply[20:22].hex()))
