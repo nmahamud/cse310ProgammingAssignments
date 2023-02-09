@@ -1,14 +1,14 @@
 import datetime
-import imp
-from ipaddress import IPv4Address
-from posixpath import split
+# import imp
+# from ipaddress import IPv4Address
+# from posixpath import split
 import dns.message
 import dns.query
 import dns.exception
 import dns.rcode
 import dns.rdtypes
 import time
-from urllib3 import Retry
+# from urllib3 import Retry
 
 ROOT_SERVERS = [ 
     "198.41.0.4",
